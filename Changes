@@ -1,0 +1,6 @@
+Revision history for Perl extension Procopts.
+
+0.01  Tue Oct 19 00:58:06 2004
+	- original version; created by h2xs 1.21 with options
+		-X Procopts
+
