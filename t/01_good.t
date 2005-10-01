@@ -69,9 +69,17 @@ BEGIN {
 		sopen(*FILE,">tmp/sunlink");
 		ok(sunlink("tmp/sunlink"),"unlink ok");
 		ok(sunlink("tmp/sunlink"),"unlink ENOENT");
-		sopen(*FILE,">tmp/sunlink");
-		schmod(0500, "tmp");
-		must_die(sub { sunlink "tmp/sunlink" },qr(^unlink:),"unlink EPERM");
+		SKIP: {
+			if ( $< && $> ) {
+				sopen(*FILE,">tmp/sunlink");
+				schmod(0500, "tmp");
+				must_die(sub {
+					sunlink "tmp/sunlink"
+				}, qr(^unlink:),"unlink EPERM");
+			} else {
+				skip "Running as root", 1;
+			};
+		};
 	};
 	$Tests::tests+=0;
 	sub t_slink # ($$)
