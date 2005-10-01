@@ -19,7 +19,9 @@ BEGIN {
 	require "t/must_die.pl" or die;
 	use	Exception::ThrowUnless qw(:all);
 	use Test::More;
-	system("chmod -R 700 tmp; rm -fr tmp");
+	if ( -e 'tmp' ) {
+		system("chmod -R 700 tmp; rm -fr tmp");
+	};
 	mkdir 'tmp', 0700 or die "mkdir:$!\n";
 	symlink "xxx", "tmp/xxx" or die "symlink:xxx,tmp/xxx:$!";
 	$Tests::tests+=2;
