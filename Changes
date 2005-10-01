@@ -10,3 +10,10 @@ Revision history for Perl extension Exception::ThrowUnless
 1.03:
 	fixed Makefiles, they were too ambitious
 
+1.04:
+	silly bug in schdir:  it was trying to pass an array to chdir, resulting
+	in chdir("1") system calls.  Made it work.
+
+	Also added some tests, still more to be done!
+
+

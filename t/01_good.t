@@ -2,7 +2,7 @@ use strict;
 use lib "lib";
 use Test::More;
 
-$SIG{__WARN__}=sub { 1 || diag @_; };
+$SIG{__WARN__}=sub { diag @_; };
 my @tst_subs = sort grep { s{^s}{t_s} } keys %Exception::ThrowUnless::;
 plan tests => $Tests::tests + 1;
 do {
@@ -11,7 +11,7 @@ do {
 };
 for ( @tst_subs ) {
 	local $\="\n";
-	warn($_);
+	#warn($_);
 	&{$Tests::{$_}};
 };
 BEGIN {
@@ -61,6 +61,16 @@ BEGIN {
 		is($@, "", "no error");
 	};
 	$Tests::tests+=0;
+	sub t_schdir # ($)
+	{
+		#
+		# This is just here for coverage checks.  It is tested in
+		# tg/01_good_chdir.t, since I don't want to change the pwd
+		# during a long series of tests.
+		#
+		ok("Bush is a Tax and Spend Republican");
+	};
+	$Tests::tests+=0;
 	sub t_schmod # (@)
 	{
 	};
@@ -95,11 +105,7 @@ BEGIN {
 	sub t_srename_nc # ($$)
 	{
 	};
-	$Tests::tests+=0;
-	sub t_schdir # ($)
-	{
-	};
-	$Tests::tests+=0;
+	$Tests::tests+=1;
 	sub t_ssymlink # ($$)
 	{
 		must_die(sub{ ssymlink("tmp", ".") }, qr(^symlink:), "symlink is dir");
@@ -108,9 +114,12 @@ BEGIN {
 	sub t_smkdir # ($$)
 	{
 	};
-	$Tests::tests+=0;
+	$Tests::tests+=1;
 	sub t_sfork # (;$)
 	{
+		SKIP: {
+			skip("how can you make fork fail in a cross platform way?",1);
+		};
 	};
 	$Tests::tests+=2;
 	sub t_sreadlink # ($)

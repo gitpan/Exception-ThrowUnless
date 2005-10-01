@@ -4,7 +4,7 @@ use strict;
 use File::Spec::Functions;
 
 our(@ISA)=qw(Exporter);
-our $VERSION = "1.03";
+our $VERSION = "1.04";
 our @EXPORT_OK = qw(
 	schdir   schmod  sclose     sexec    sfork       slink
 	smkdir   sopen   sreadlink  srename  srename_nc  ssymlink
@@ -58,8 +58,8 @@ sub srename_nc($$) {
 	srename($f,$t);
 }
 sub schdir($){
-	local $"=",";
-	chdir @_ or throw "chdir:@_:$!";
+	local ($",$_)=(",",shift);
+	chdir $_  or throw "chdir:$_:$!";
 }
 sub ssymlink($$) {
 	my ( $f, $t ) = @_;
