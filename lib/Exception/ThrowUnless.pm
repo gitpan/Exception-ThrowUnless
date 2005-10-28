@@ -4,7 +4,7 @@ use strict;
 use File::Spec::Functions;
 
 our(@ISA)=qw(Exporter);
-our $VERSION = "1.04";
+our $VERSION = "1.05";
 our @EXPORT_OK = qw(
 	schdir   schmod  sclose     sexec    sfork       slink
 	smkdir   sopen   sreadlink  srename  srename_nc  ssymlink
@@ -24,6 +24,9 @@ sub checkdef($@) {
 sub sexec(@){
 	exec @_;
 	die throw "exec (@_):$!";
+}
+sub spipe(\*\*){
+	defined(spipe($_[0],$_[1])) or throw "pipe:@_:$!\n";
 }
 sub sopen(\*$) {
 	my ($h,$n) = @_;
