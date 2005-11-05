@@ -1,3 +1,5 @@
+test:: all
+
 ifeq ($(wildcard Makefile),)
 
 Makefile: Makefile.PL MANIFEST

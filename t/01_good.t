@@ -3,17 +3,18 @@ use lib "lib";
 use Test::More;
 
 $SIG{__WARN__}=sub { diag @_; };
-my @tst_subs = sort grep { s{^s}{t_s} } keys %Exception::ThrowUnless::;
 plan tests => $Tests::tests + 1;
-do {
-	my @exp_subs = sort grep { m{^t_s}    } keys %Tests::;
-	is( "@exp_subs", "@tst_subs", "same subs" );
-};
+
+my @tst_subs = sort grep { s{^s}{t_s} } keys %Exception::ThrowUnless::;
+
+my @exp_subs = sort grep { m{^t_s} } keys %Tests::;
+is( "@exp_subs", "@tst_subs", "same subs" );
 for ( @tst_subs ) {
 	local $\="\n";
 	#warn($_);
 	&{$Tests::{$_}};
 };
+
 BEGIN {
 	package Tests;
 	require "t/must_die.pl" or die;
@@ -70,9 +71,12 @@ BEGIN {
 		#
 		ok("Bush is a Tax and Spend Republican");
 	};
-	$Tests::tests+=0;
+	$Tests::tests+=1;
 	sub t_schmod # (@)
 	{
+		SKIP: {
+			skip "not implemented", 1;
+		};
 	};
 	$Tests::tests+=3;
 	sub t_sunlink # (@)
@@ -120,6 +124,15 @@ BEGIN {
 		SKIP: {
 			skip("how can you make fork fail in a cross platform way?",1);
 		};
+	};
+	$Tests::tests+=2;
+	sub t_spipe # ($)
+	{
+		SKIP: {
+			skip("how can you make pipe fail in a cross platform way?",1);
+		};
+		local(*I,*O);
+		ok(spipe(*I,*O),"spipe");
 	};
 	$Tests::tests+=2;
 	sub t_sreadlink # ($)

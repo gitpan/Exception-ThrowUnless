@@ -4,11 +4,10 @@ use strict;
 use File::Spec::Functions;
 
 our(@ISA)=qw(Exporter);
-our $VERSION = "1.05";
+our $VERSION = "1.06";
 our @EXPORT_OK = qw(
-	schdir   schmod  sclose     sexec    sfork       slink
-	smkdir   sopen   sreadlink  srename  srename_nc  ssymlink
-	sunlink
+	schdir  schmod  sclose     sexec    sfork       slink     smkdir
+	sopen   spipe   sreadlink  srename  srename_nc  ssymlink  sunlink
 );
 our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
@@ -26,7 +25,7 @@ sub sexec(@){
 	die throw "exec (@_):$!";
 }
 sub spipe(\*\*){
-	defined(spipe($_[0],$_[1])) or throw "pipe:@_:$!\n";
+	defined(pipe($_[0],$_[1])) or throw "pipe:@_:$!\n";
 }
 sub sopen(\*$) {
 	my ($h,$n) = @_;
