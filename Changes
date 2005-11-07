@@ -16,4 +16,16 @@ Revision history for Perl extension Exception::ThrowUnless
 
 	Also added some tests, still more to be done!
 
+1.10:
+	added ssocketpair, srmdir, ssuck, and sspit.  ssuck and sspit are more
+	'whole file' kind of things than thin wrappers around normal system calls,
+	but I find it handy to use them in cases where I want to write terse code,
+	so I included them.
 
+	ssuck will, for a list of files, return the contents of the files, or
+	die if it is unable to open them.
+
+	sspit will, for a file name and a list of lines, create the file and
+	put the lines therein.
+
+	added some tests.

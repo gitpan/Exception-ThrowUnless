@@ -1,5 +1,3 @@
-test:: all
-
 ifeq ($(wildcard Makefile),)
 
 Makefile: Makefile.PL MANIFEST
@@ -9,6 +7,9 @@ Makefile: Makefile.PL MANIFEST
 MANIFEST:
 	cvsfiles -p | xargs lsfiles | sort > $@.new
 	mv $@.new $@
+
+%: Makefile
+	make $@
 
 else
 include Makefile
