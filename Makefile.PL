@@ -5,6 +5,10 @@ my $mod =   'lib/Exception/ThrowUnless.pm';
 WriteMakefile (
 	NAME          =>  q(Exception::ThrowUnless),
 	VERSION_FROM  =>  $mod,
-	AUTHOR        =>  q(Rich Paul <turing-test@rich-paul.net>)
+	AUTHOR        =>  q(Rich Paul <turing-test@rich-paul.net>),
+	'dist' => {
+		'CI' => 'cvs commit',
+		'RCS_LABEL' => 'cvs tag V$(VERSION_SYM)',
+	}
 );
 

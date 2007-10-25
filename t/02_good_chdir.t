@@ -1,6 +1,7 @@
 use strict;
 use lib "lib";
 use Test::More;
+require "./t/setup.pl";
 require "./t/must_die.pl";
 plan tests => 13;
 eval q{ use Croak; confess; };
@@ -21,10 +22,6 @@ sub t_schdir # ($)
 	ok(schdir($pwd), "there and back again");
 	isnt(file_id("/"),file_id("."),"no longer root");
 	is(file_id("$psc/."),$dot, 'I like to be home when I can.');
-	system qq(
-		echo
-		ls -ld $ENV{PWD}/tmp/* $ENV{PWD}/tmp
-	);
 	ok(schdir("tmp"),"changed to tmp");
 	ok(schdir(".."), "changed back");
 	must_die(sub { schdir($0) }, qr(^chdir:), "cd $0");

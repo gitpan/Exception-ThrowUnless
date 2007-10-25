@@ -7,11 +7,12 @@ use strict;
 use File::Spec::Functions;
 
 our(@ISA)=qw(Exporter);
-our $VERSION = "1.10";
+our $VERSION = "1.11";
 our @EXPORT_OK = qw(
-	schdir  schmod    sclose     sexec    sfork       slink        smkdir
-	sopen   spipe     sreadlink  srename  srename_nc  srmdir       ssocketpair
-	sspit   ssuck     ssymlink   sunlink
+	schdir      schmod  sclose       sexec  sfork      slink
+	smkdir      sopen   sopendir     spipe  sreadlink  srename
+	srename_nc  srmdir  ssocketpair  sspit  ssuck      ssymlink
+	sunlink
 );
 our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
@@ -34,8 +35,8 @@ sub _checkdef($@) {
 sub schdir($){
 	_checktrue(chdir($_[0]),"chdir:$_[0]:$!");
 };
-sub srmdir(@) {
-	local ($_) = scalar(@_)?(@_):$_;
+sub srmdir(;$) {
+	local $_ = shift if @_;
 	_checktrue(rmdir($_),"rmdir:$_:$!\n");
 };
 sub schmod(@) {
@@ -69,6 +70,9 @@ sub smkdir($$) {
 };
 sub sopen(\*$) {
 	_checkdef(open($_[0],$_[1]),"open:$_[0],$_[1]:$!");
+};
+sub sopendir(\*$){
+	_checkdef(opendir($_[0],$_[1]),"opendir:$_[0],$_[1]:$!\n");
 };
 sub spipe(\*\*){
 	_checkdef(pipe($_[0],$_[1]),"pipe:@_:$!");

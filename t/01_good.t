@@ -1,31 +1,48 @@
 use strict;
 BEGIN { use lib "lib"; };
 use Test::More;
+package Tests;
+our($tests,%tests,@tst_subs);
 
-$SIG{__WARN__}=sub { diag @_; };
-my @tst_subs = sort grep { s{^s}{t_s} } keys %Exception::ThrowUnless::;
-plan tests => $Tests::tests + 1;
+package main;
+
 do {
+	$SIG{__WARN__}=sub { diag @_; };
+	my $match = do {
+		local $_ = q(.);
+		$_ = join("|",map { qq(($_)) } @ARGV) if @ARGV;
+		qr($_);
+	};
+
+	@tst_subs = sort grep { s{^s}{t_s} } keys %Exception::ThrowUnless::;
 	my @exp_subs = sort grep { m{^t_s}    } keys %Tests::;
-	is( "@exp_subs", "@tst_subs", "same subs" );
-};
-for ( @tst_subs ) {
-	local $\="\n";
-	warn($_);
-	&{$Tests::{$_}};
+	my $tst_subs = "@tst_subs";
+	grep { /$match/ and $Tests::tests+=$tests{$_} } keys %tests;
+	plan tests => $Tests::tests + 1;
+
+	is( "@exp_subs", $tst_subs, "same subs" );
+
+	for ( @tst_subs ) {
+		local $\="\n";
+		SKIP: {
+			do {
+				if ( /$match/ ) {
+					&{$Tests::{$_}};
+				} elsif (0) {
+					skip("no match: $_\n",$tests{$_});
+				};
+			};
+		}
+	};
 };
 BEGIN {
 	package Tests;
 	require "t/must_die.pl" or die;
+	require "t/setup.pl" or die;
 	use	Exception::ThrowUnless qw(:all);
 	use Test::More;
-   	if ( -e 'tmp' ) {
-   		system("chmod -R 700 tmp; rm -fr tmp");
-   	};
-	smkdir 'tmp', 0700;
 	ssymlink "xxx", "tmp/xxx";
-	$Tests::tests--;
-	$Tests::tests+=2;
+	$Tests::tests{t_sexec}=2;
 	sub t_sexec(@)
 	{
 		defined(my $pid = fork) || die "fork:$!";
@@ -37,7 +54,7 @@ BEGIN {
 			is($?, 0, "exec returned true");
 		};
 	};
-	$Tests::tests+=3;
+	$Tests::tests{t_ssocketpair}=3;
 	sub t_ssocketpair
 	{
 		use Socket;
@@ -45,30 +62,36 @@ BEGIN {
 		local (*I,*O);
 		ok(ssocketpair(*I,*O,AF_UNIX,SOCK_STREAM,PF_UNSPEC),
 			"socketpair");
-		must_die(sub {
-			for ( 0 .. 10000 ) {
-				no strict "refs";
-				ssocketpair(*{"I$_"},*{"O$_"},AF_UNIX,SOCK_STREAM,PF_UNSPEC);
+		SKIP: {
+			if(0) {
+				must_die(sub {
+						for ( 0 .. 10000 ) {
+							no strict "refs";
+							ssocketpair(*{"I$_"},*{"O$_"},AF_UNIX,SOCK_STREAM,PF_UNSPEC);
+						};
+					},qr{^socketpair:GLOB},"many pipes");
+				for ( 0 .. 10000 ) {
+					no strict "refs";
+					no warnings;
+					close(*{"I$_"});
+					close(*{"O$_"});
+				};
+			} else {
+				skip("kernel bug 2.6.21 -- no error returned",1);
 			};
-		},qr{^socketpair:GLOB},"many pipes");
-		for ( 0 .. 10000 ) {
-			no strict "refs";
-			no warnings "closed";
-			close(*{"I$_"});
-			close(*{"O$_"});
 		};
 		ok(ssocketpair(*I,*O,AF_UNIX,SOCK_STREAM,PF_UNSPEC),
 			"socketpair");
 	};
-	$Tests::tests+=0;
+	$Tests::tests{t_sspit}=0;
 	sub t_sspit
 	{
 	};
-	$Tests::tests+=0;
+	$Tests::tests{t_ssuck}=0;
 	sub t_ssuck
 	{
 	};
-	$Tests::tests+=4;
+	$Tests::tests{t_sopen}=4;
 	sub t_sopen # (*$)
 	{
 		local(*FILE);
@@ -81,7 +104,11 @@ BEGIN {
 		like($@, qr/^open:GLOB\(0x[0-9a-zA-Z]*\),>tmp:./, "open dir failed");
 		ok(!close(FILE), "!file open");
 	};
-	$Tests::tests+=3;
+	$Tests::tests{t_sopendir}=0;
+	sub t_sopendir # (*$)
+	{
+	};
+	$Tests::tests{t_sclose}=3;
 	sub t_sclose # (*)
 	{
 		local *FILE;
@@ -92,7 +119,7 @@ BEGIN {
 		ok(defined sclose(*FILE), "close open file");
 		is($@, "", "no error");
 	};
-	$Tests::tests+=1;
+	$Tests::tests{t_schdir}=1;
 	sub t_schdir # ($)
 	{
 		#
@@ -100,44 +127,50 @@ BEGIN {
 		# tg/01_good_chdir.t, since I don't want to change the pwd
 		# during a long series of tests.
 		#
-		ok("Bush is a Tax and Spend Republican");
+		ok("Don't blame me, I voted Libertarian!");
 	};
-	$Tests::tests+=3;
+	$Tests::tests{t_spipe}=3;
 	sub t_spipe # (@)
 	{
 		ok(spipe(local *I,local *O),"spipe piped");
 		must_die(sub {
-			for ( 0 .. 10000 ) {
-				no strict "refs";
-				spipe(*{"I$_"},*{"O$_"});
-			};
-		},qr{^pipe:GLOB},"many pipes");
+				for ( 0 .. 10000 ) {
+					no strict "refs";
+					spipe(*{"I$_"},*{"O$_"});
+				};
+			},qr{^pipe:GLOB},"many pipes");
 		for ( 0 .. 10000 ) {
-			no warnings "closed";
+			no warnings;
 			no strict "refs";
 			close(*{"I$_"});
 			close(*{"O$_"});
 		};
 		ok(spipe(local *I,local *O),"spipe piped");
 	};
-	$Tests::tests+=2;
+	$Tests::tests{t_schmod}=2;
 	sub t_schmod # (@)
 	{
-		smkdir("adir",0700);
-		ok(schmod(0770,"adir"));
-		srmdir("adir");
-		must_die(sub { schmod(0777,"adir") },qr/^chmod:/,"chmod gone");
+		must_die(sub { schmod(0777,"tmp/schmod") },qr/^chmod:/,"chmod gone");
+
+		smkdir("tmp/schmod",0700);
+		is(schmod(0770,"tmp/schmod"),1,"chmod tmp/schmod");
 	};
-	$Tests::tests+=2;
+	$Tests::tests{t_srmdir}=5;
 	sub t_srmdir # (@)
 	{
-		local $_ = "xxx";
+		local $_ = "tmp/srmdir_1";
+		must_die( sub { srmdir }, qr/^rmdir:/, "rmdir gone" );
+
 		smkdir($_,0777);
-		ok(srmdir);
+		is(eval 'srmdir',1,"srmdir");
+		is($@,"",'srmdir eval');
+
 		smkdir($_,0777);
-		ok(srmdir($_));
+		is(eval 'srmdir($_)',1,"srmdir $_");
+		is($@,"",'srmdir eval');
+
 	};
-	$Tests::tests+=3;
+	$Tests::tests{t_sunlink}=3;
 	sub t_sunlink # (@)
 	{
 		local *FILE;
@@ -156,19 +189,19 @@ BEGIN {
 			};
 		};
 	};
-	$Tests::tests+=0;
+	$Tests::tests{t_slink}=0;
 	sub t_slink # ($$)
 	{
 	};
-	$Tests::tests+=0;
+	$Tests::tests{t_srename}=0;
 	sub t_srename # ($$)
 	{
 	};
-	$Tests::tests+=0;
+	$Tests::tests{t_srename_nc}=0;
 	sub t_srename_nc # ($$)
 	{
 	};
-	$Tests::tests+=1;
+	$Tests::tests{t_ssymlink}=1;
 	sub t_ssymlink # ($$)
 	{
 		must_die(
@@ -177,22 +210,21 @@ BEGIN {
 			}, qr(^symlink:), "symlink is dir"
 		);
 	};
-	$Tests::tests+=0;
+	$Tests::tests{t_smkdir}=0;
 	sub t_smkdir # ($$)
 	{
 	};
-	$Tests::tests+=1;
+	$Tests::tests{t_sfork}=1;
 	sub t_sfork # (;$)
 	{
 		SKIP: {
 			skip("how can you make fork fail in a cross platform way?",1);
 		};
 	};
-	$Tests::tests+=2;
+	$Tests::tests{t_sreadlink}=1;
 	sub t_sreadlink # ($)
 	{
 		ssymlink("test", "tmp/test");
 		is(sreadlink("tmp/test"),"test","readlink eq 'test'");
 	};
-	$Tests::tests+=0;
 };

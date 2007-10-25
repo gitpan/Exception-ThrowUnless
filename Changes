@@ -29,3 +29,10 @@ Revision history for Perl extension Exception::ThrowUnless
 	put the lines therein.
 
 	added some tests.
+
+1.11:
+	skipping test for ssocketpair, since Linux 2.6.21 seems to have
+	a bug in socketpair.  It can return success, when either of the fd
+	creations fail.  See net/socket.c in the kernel sources, and not that
+	fd1 and fd2 are checked for error, but err is returned on failure.
+
